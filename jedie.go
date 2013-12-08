@@ -396,8 +396,7 @@ func checkFatal(err error) {
 	}
 }
 
-func main() {
-	flag.Usage = func() {
+func usage() {
 		fmt.Println(`
   NAME:
 
@@ -413,26 +412,34 @@ func main() {
     build                Build your site
     serve                Serve your site locally
 `[1:])
-	}
-	flag.Parse()
+}
 
+func commands(args []string) {
 	var cfg config
 	var err error
-	switch {
-	case flag.Arg(0) == "new":
-		p := flag.Arg(1)
-		if p == "" {
+
+	fmt.Println(args)
+
+	if len(args) == 0 {
+		flag.Usage()
+		return
+	}
+
+	switch args[0] {
+	case "new":
+		path := args[1]
+		if path == "" {
 			flag.Usage()
 			os.Exit(1)
 		}
-		err = cfg.New(p)
+		err = cfg.New(path)
 		checkFatal(err)
-	case flag.Arg(0) == "build":
+	case "build":
 		err = cfg.load("_config.yml")
 		checkFatal(err)
 		err = cfg.Build()
 		checkFatal(err)
-	case flag.Arg(0) == "serve":
+	case "serve":
 		err = cfg.load("_config.yml")
 		checkFatal(err)
 		err = cfg.Serve()
@@ -440,4 +447,12 @@ func main() {
 	default:
 		flag.Usage()
 	}
+}
+
+func main() {
+	flag.Usage = usage
+
+	flag.Parse()
+
+	commands(flag.Args())
 }
